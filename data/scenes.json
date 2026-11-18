@@ -3,7 +3,7 @@
   "scenes": [
     {
       "id": "0104_indoor",
-      "label": "多良間・社宅 室内/寝室 (0104 Indoor Clean版)",
+      "label": "多良間・社宅 屋外 Ver.1 (0104)",
       "category": "torama",
       "date": "2026-09-29",
       "aligned": true,
@@ -11,13 +11,6 @@
       "settings": "supersplat/settings_indoor.json",
       "mask_review": "data/0104_indoor/mask_review_sheet.jpg",
       "tiers": {
-        "dollhouse": {
-          "url": "data/0104_indoor/splat_dollhouse_sh0.sog",
-          "budget": 2000000,
-          "size_mb": 17.7,
-          "splats": "1.72M SH0 (天井スライス)",
-          "label": "✂️ 天井スライス (17.7MB)"
-        },
         "lod": {
           "url": "data/0104_indoor/lod/lod-meta.json",
           "budget": 1000000,
@@ -57,7 +50,7 @@
     },
     {
       "id": "0104_outdoor",
-      "label": "多良間・社宅 屋外/敷地周辺 (0104 Outdoor Clean版)",
+      "label": "多良間・社宅 屋外 Ver.2 (0104 Clean版)",
       "category": "torama",
       "date": "2026-09-29",
       "aligned": true,
