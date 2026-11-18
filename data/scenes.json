@@ -1,0 +1,106 @@
+{
+  "default_scene": "0104_indoor",
+  "scenes": [
+    {
+      "id": "0104_indoor",
+      "label": "多良間・社宅 室内/寝室 (0104 Indoor Clean版)",
+      "category": "torama",
+      "date": "2026-09-29",
+      "aligned": true,
+      "collision": "data/0104_indoor/collision.glb",
+      "settings": "supersplat/settings_indoor.json",
+      "mask_review": "data/0104_indoor/mask_review_sheet.jpg",
+      "tiers": {
+        "dollhouse": {
+          "url": "data/0104_indoor/splat_dollhouse_sh0.sog",
+          "budget": 2000000,
+          "size_mb": 17.7,
+          "splats": "1.72M SH0 (天井スライス)",
+          "label": "✂️ 天井スライス (17.7MB)"
+        },
+        "lod": {
+          "url": "data/0104_indoor/lod/lod-meta.json",
+          "budget": 1000000,
+          "size_mb": 30.9,
+          "splats": "2.00M Octree",
+          "label": "Streamed LOD (初回2.5MB・動的)"
+        },
+        "mobile": {
+          "url": "data/0104_indoor/splat_mobile_1m_sh0.sog",
+          "budget": 1000000,
+          "size_mb": 10.4,
+          "splats": "1.00M SH0",
+          "label": "軽量100万 (10.4MB・SH0)"
+        },
+        "ultra": {
+          "url": "data/0104_indoor/splat_ultralite_400k_sh0.sog",
+          "budget": 500000,
+          "size_mb": 4.2,
+          "splats": "400K SH0",
+          "label": "超軽量40万 (4.2MB・爆速)"
+        },
+        "sh0": {
+          "url": "data/0104_indoor/splat_30000_sh0.sog",
+          "budget": 2000000,
+          "size_mb": 20.6,
+          "splats": "2.00M SH0",
+          "label": "200万 SH0 (20.6MB)"
+        },
+        "full": {
+          "url": "data/0104_indoor/splat_30000.sog",
+          "budget": 3000000,
+          "size_mb": 25.1,
+          "splats": "2.00M SH3",
+          "label": "フル高画質 SH3 (25.1MB)"
+        }
+      }
+    },
+    {
+      "id": "0104_outdoor",
+      "label": "多良間・社宅 屋外/敷地周辺 (0104 Outdoor Clean版)",
+      "category": "torama",
+      "date": "2026-09-29",
+      "aligned": true,
+      "collision": "data/0104_outdoor_clean/collision.glb",
+      "settings": "supersplat/settings.json",
+      "mask_review": "data/0104_outdoor_clean/mask_review_sheet.jpg",
+      "tiers": {
+        "lod": {
+          "url": "data/0104_outdoor_clean/lod/lod-meta.json",
+          "budget": 1000000,
+          "size_mb": 48.0,
+          "splats": "3.00M Octree",
+          "label": "Streamed LOD (初回2.7MB・動的)"
+        },
+        "mobile": {
+          "url": "data/0104_outdoor_clean/splat_mobile_1m_sh0.sog",
+          "budget": 1000000,
+          "size_mb": 10.3,
+          "splats": "1.00M SH0",
+          "label": "軽量100万 (10.3MB・SH0)"
+        },
+        "ultra": {
+          "url": "data/0104_outdoor_clean/splat_ultralite_400k_sh0.sog",
+          "budget": 500000,
+          "size_mb": 4.2,
+          "splats": "400K SH0",
+          "label": "超軽量40万 (4.2MB・爆速)"
+        },
+        "sh0": {
+          "url": "data/0104_outdoor_clean/splat_30000_sh0.sog",
+          "budget": 3000000,
+          "size_mb": 30.5,
+          "splats": "3.00M SH0",
+          "label": "300万 SH0 (30.5MB)"
+        },
+        "full": {
+          "url": "data/0104_outdoor_clean/splat_30000.sog",
+          "budget": 4000000,
+          "size_mb": 36.5,
+          "splats": "3.00M SH3",
+          "label": "フル高画質 SH3 (36.5MB)"
+        }
+      }
+    }
+  ]
+}

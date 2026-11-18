@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>多良間・社宅 3DGSビューア (室内＆屋外)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: rgba(15, 23, 42, 0.94);
+      --border: rgba(148, 163, 184, 0.22);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #34d399;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      overflow: hidden; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    }
+    .app-shell { display: flex; flex-direction: column; width: 100%; height: 100%; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 8px 14px; background: var(--panel);
+      border-bottom: 1px solid var(--border); backdrop-filter: blur(12px);
+      z-index: 50; flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(52, 211, 153, 0.14); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    .scene-group { display: inline-flex; align-items: center; gap: 6px; }
+    .scene-select {
+      background: #0f172a; color: #38bdf8; border: 1px solid #0284c7;
+      border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer; outline: none; max-width: 280px;
+    }
+    .preset-group {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #0f172a; padding: 3px; border-radius: 9px;
+      border: 1px solid #334155; flex-wrap: wrap;
+    }
+    .preset-btn {
+      background: transparent; color: var(--muted); border: 1px solid transparent;
+      border-radius: 6px; padding: 5px 9px; font-size: 11.5px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .preset-btn:hover { color: var(--text); background: rgba(51, 65, 85, 0.5); }
+    .preset-btn.active {
+      background: rgba(56, 189, 248, 0.2); color: #bae6fd;
+      border-color: rgba(56, 189, 248, 0.55); box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
+    }
+    .preset-sub { font-size: 10px; font-weight: 500; opacity: 0.85; }
+    .toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    select, .btn {
+      background: #1e293b; color: var(--text); border: 1px solid #334155;
+      border-radius: 7px; padding: 5px 9px; font-size: 11.5px; font-weight: 500;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+    }
+    select:hover, .btn:hover { background: #334155; border-color: var(--accent); }
+    .btn.primary { background: rgba(56, 189, 248, 0.16); border-color: rgba(56, 189, 248, 0.45); color: #38bdf8; }
+    .viewer-wrap { flex: 1; position: relative; width: 100%; height: 100%; background: #000; }
+    iframe#viewer-frame { width: 100%; height: 100%; border: none; display: block; }
+    .status-pill {
+      position: absolute; bottom: 12px; left: 14px;
+      background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px; font-size: 11px; backdrop-filter: blur(8px);
+      color: var(--muted); pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 20;
+    }
+    .status-pill b { color: #f8fafc; }
+    .walk-indicator { display: inline-flex; align-items: center; gap: 3px; color: var(--green); margin-left: 6px; font-weight: 600; }
+    @media (max-width: 900px) {
+      .topbar { padding: 6px 10px; gap: 6px; }
+      .preset-btn { padding: 4px 7px; font-size: 11px; }
+      .desktop-only { display: none; }
+      .scene-select { max-width: 210px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span>🏠 多良間・社宅 3DGS</span>
+        <span class="badge">✓ 室内・屋外 / 歩行対応</span>
+      </div>
+
+      <div class="scene-group">
+        <label for="scene-select" style="font-size:11px;color:var(--muted);font-weight:600">場所:</label>
+        <select id="scene-select" class="scene-select" title="表示シーンを選択"></select>
+      </div>
+
+      <div class="preset-group" id="preset-group" role="tablist">
+        <button class="preset-btn" data-preset="dollhouse" id="btn-dollhouse" style="display:none;">
+          🏠 天井スライス <span class="preset-sub" id="sub-dollhouse">(17.7MB)</span>
+        </button>
+        <button class="preset-btn active" data-preset="lod">
+          📱 Streamed LOD <span class="preset-sub" id="sub-lod">(動的)</span>
+        </button>
+        <button class="preset-btn" data-preset="mobile">
+          ⚡ スマホ軽量 <span class="preset-sub" id="sub-mobile">(100万点)</span>
+        </button>
+        <button class="preset-btn" data-preset="ultra">
+          🪶 超軽量 <span class="preset-sub" id="sub-ultra">(40万点)</span>
+        </button>
+        <button class="preset-btn" data-preset="sh0">
+          🔷 フル SH0 <span class="preset-sub" id="sub-sh0">(SH0)</span>
+        </button>
+        <button class="preset-btn" data-preset="full">
+          💎 フル高画質 <span class="preset-sub" id="sub-full">(SH3)</span>
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <select id="renderer-select" title="描画エンジン">
+          <option value="webgpu-auto">🚀 WebGPU 自動最適化</option>
+          <option value="webgpu-stochastic">⚡ Stochastic (ソートレス軽量)</option>
+          <option value="webgl-compat">🛡️ WebGL2 互換モード</option>
+        </select>
+
+        <a class="btn primary" id="dl-btn" href="#" download="" title="現在選択中の3Dモデルを保存">
+          <span>⬇ <span id="dl-label" class="desktop-only">保存</span></span>
+        </a>
+      </div>
+    </header>
+
+    <main class="viewer-wrap">
+      <iframe id="viewer-frame" allow="fullscreen; xr-spatial-tracking"></iframe>
+      <div class="status-pill" id="active-status">読み込み中...</div>
+    </main>
+  </div>
+
+  <script>
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const hasWebGPU = typeof navigator !== 'undefined' && !!navigator.gpu;
+
+    let ALL_SCENES = {"0104_indoor": {"id": "0104_indoor", "label": "多良間・社宅 室内/寝室 (0104 Indoor Clean版)", "category": "torama", "date": "2026-09-29", "aligned": true, "collision": "data/0104_indoor/collision.glb", "settings": "supersplat/settings_indoor.json", "mask_review": "data/0104_indoor/mask_review_sheet.jpg", "tiers": {"dollhouse": {"url": "data/0104_indoor/splat_dollhouse_sh0.sog", "budget": 2000000, "size_mb": 17.7, "splats": "1.72M SH0 (天井スライス)", "label": "✂️ 天井スライス (17.7MB)"}, "lod": {"url": "data/0104_indoor/lod/lod-meta.json", "budget": 1000000, "size_mb": 30.9, "splats": "2.00M Octree", "label": "Streamed LOD (初回2.5MB・動的)"}, "mobile": {"url": "data/0104_indoor/splat_mobile_1m_sh0.sog", "budget": 1000000, "size_mb": 10.4, "splats": "1.00M SH0", "label": "軽量100万 (10.4MB・SH0)"}, "ultra": {"url": "data/0104_indoor/splat_ultralite_400k_sh0.sog", "budget": 500000, "size_mb": 4.2, "splats": "400K SH0", "label": "超軽量40万 (4.2MB・爆速)"}, "sh0": {"url": "data/0104_indoor/splat_30000_sh0.sog", "budget": 2000000, "size_mb": 20.6, "splats": "2.00M SH0", "label": "200万 SH0 (20.6MB)"}, "full": {"url": "data/0104_indoor/splat_30000.sog", "budget": 3000000, "size_mb": 25.1, "splats": "2.00M SH3", "label": "フル高画質 SH3 (25.1MB)"}}}, "0104_outdoor": {"id": "0104_outdoor", "label": "多良間・社宅 屋外/敷地周辺 (0104 Outdoor Clean版)", "category": "torama", "date": "2026-09-29", "aligned": true, "collision": "data/0104_outdoor_clean/collision.glb", "settings": "supersplat/settings.json", "mask_review": "data/0104_outdoor_clean/mask_review_sheet.jpg", "tiers": {"lod": {"url": "data/0104_outdoor_clean/lod/lod-meta.json", "budget": 1000000, "size_mb": 48.0, "splats": "3.00M Octree", "label": "Streamed LOD (初回2.7MB・動的)"}, "mobile": {"url": "data/0104_outdoor_clean/splat_mobile_1m_sh0.sog", "budget": 1000000, "size_mb": 10.3, "splats": "1.00M SH0", "label": "軽量100万 (10.3MB・SH0)"}, "ultra": {"url": "data/0104_outdoor_clean/splat_ultralite_400k_sh0.sog", "budget": 500000, "size_mb": 4.2, "splats": "400K SH0", "label": "超軽量40万 (4.2MB・爆速)"}, "sh0": {"url": "data/0104_outdoor_clean/splat_30000_sh0.sog", "budget": 3000000, "size_mb": 30.5, "splats": "3.00M SH0", "label": "300万 SH0 (30.5MB)"}, "full": {"url": "data/0104_outdoor_clean/splat_30000.sog", "budget": 4000000, "size_mb": 36.5, "splats": "3.00M SH3", "label": "フル高画質 SH3 (36.5MB)"}}}};
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentScene = urlParams.get('scene') || '0104_indoor';
+    let currentPreset = urlParams.get('preset') || 'lod';
+    let currentRenderer = urlParams.get('renderer') || 'webgpu-auto';
+
+    function resolveUrl(relOrAbs) {
+      return new URL(relOrAbs, window.location.href).href;
+    }
+
+    function renderSceneDropdown() {
+      const sel = document.getElementById('scene-select');
+      sel.innerHTML = '';
+      if (!ALL_SCENES[currentScene]) currentScene = Object.keys(ALL_SCENES)[0];
+      for (const [id, sc] of Object.entries(ALL_SCENES)) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = sc.label || id;
+        if (id === currentScene) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function buildViewerUrl(sceneKey, presetKey, rendererMode) {
+      const sc = ALL_SCENES[sceneKey] || ALL_SCENES['0104_indoor'];
+      if (!sc || !sc.tiers) return '';
+      const t = sc.tiers[presetKey] || sc.tiers['lod'] || sc.tiers['mobile'] || Object.values(sc.tiers)[0];
+      if (!t) return '';
+
+      const params = new URLSearchParams();
+      params.set('content', resolveUrl(t.url));
+      params.set('settings', resolveUrl(sc.settings || 'supersplat/settings.json'));
+      if (sc.collision) params.set('collision', resolveUrl(sc.collision));
+      if (t.budget) {
+        const b = isMobile ? Math.min(t.budget, 1000000) / 1000000 : t.budget / 1000000;
+        params.set('budget', String(b));
+      }
+      if (rendererMode === 'webgl-compat') params.set('webgl', '');
+      else if (rendererMode === 'webgpu-stochastic') params.set('stochastic', 'mobile');
+
+      return `supersplat/index.html?${params.toString()}`;
+    }
+
+    function updateSceneLabels() {
+      const sc = ALL_SCENES[currentScene] || ALL_SCENES['0104_indoor'];
+      if (!sc || !sc.tiers) return;
+      const dollhouseBtn = document.getElementById('btn-dollhouse');
+      if (dollhouseBtn) {
+        if (sc.tiers.dollhouse) {
+          dollhouseBtn.style.display = 'inline-flex';
+          document.getElementById('sub-dollhouse').textContent = `(${sc.tiers.dollhouse.size_mb}MB)`;
+        } else {
+          dollhouseBtn.style.display = 'none';
+        }
+      }
+      if (sc.tiers.lod) document.getElementById('sub-lod').textContent = `(${sc.tiers.lod.size_mb}MB·動的)`;
+      if (sc.tiers.mobile) document.getElementById('sub-mobile').textContent = `(${sc.tiers.mobile.size_mb}MB·SH0)`;
+      if (sc.tiers.ultra) document.getElementById('sub-ultra').textContent = `(${sc.tiers.ultra.size_mb}MB·爆速)`;
+      if (sc.tiers.sh0) document.getElementById('sub-sh0').textContent = `(${sc.tiers.sh0.size_mb}MB)`;
+      if (sc.tiers.full) document.getElementById('sub-full').textContent = `(${sc.tiers.full.size_mb}MB)`;
+
+      const currentTier = sc.tiers[currentPreset] || sc.tiers['mobile'] || Object.values(sc.tiers)[0];
+      const dlBtn = document.getElementById('dl-btn');
+      if (currentTier && currentTier.url) {
+        dlBtn.href = currentTier.url;
+        dlBtn.download = `${currentScene}_${currentPreset}.sog`;
+        document.getElementById('dl-label').textContent = `保存 (${currentTier.size_mb}MB)`;
+      }
+    }
+
+    function applySelection() {
+      const url = buildViewerUrl(currentScene, currentPreset, currentRenderer);
+      const frame = document.getElementById('viewer-frame');
+      if (frame.getAttribute('data-loaded-url') !== url) {
+        frame.setAttribute('data-loaded-url', url);
+        frame.src = url;
+      }
+      const sc = ALL_SCENES[currentScene] || ALL_SCENES['0104_indoor'];
+      const t = sc && sc.tiers ? (sc.tiers[currentPreset] || sc.tiers['lod'] || Object.values(sc.tiers)[0]) : { splats: '', size_mb: 0 };
+      const rText = currentRenderer === 'webgl-compat' ? 'WebGL2 互換' : (currentRenderer === 'webgpu-stochastic' ? 'WebGPU Stochastic' : (hasWebGPU ? 'WebGPU 高速' : 'WebGL2 フォールバック'));
+      const walkTag = sc && sc.collision ? '<span class="walk-indicator">🚶 WalkMode対応</span>' : '';
+      document.getElementById('active-status').innerHTML = `シーン: <b>${sc ? sc.label : currentScene}</b> · 画質: <b>${t.splats} (${t.size_mb}MB)</b> · エンジン: <b>${rText}</b> ${walkTag}`;
+
+      document.querySelectorAll('.preset-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.preset === currentPreset));
+
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('scene', currentScene);
+      nextUrl.searchParams.set('preset', currentPreset);
+      nextUrl.searchParams.set('renderer', currentRenderer);
+      window.history.replaceState(null, '', nextUrl.toString());
+      updateSceneLabels();
+    }
+
+    document.getElementById('scene-select').addEventListener('change', (e) => {
+      currentScene = e.target.value;
+      applySelection();
+    });
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentPreset = btn.dataset.preset;
+        applySelection();
+      });
+    });
+    document.getElementById('renderer-select').addEventListener('change', (e) => {
+      currentRenderer = e.target.value;
+      applySelection();
+    });
+
+    renderSceneDropdown();
+    applySelection();
+  </script>
+</body>
+</html>
